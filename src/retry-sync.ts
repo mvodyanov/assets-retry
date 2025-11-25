@@ -212,7 +212,7 @@ export default function initSync(opts: InnerAssetsRetryOptions) {
                     const rules = getCssRules(targetStyleSheet)
                     // If stylesheet has no rules, it might have failed or be empty
                     // Only retry if we can't access rules (which indicates load failure)
-                    if (rules === null) {
+                    if (rules === null || rules.length === 0) {
                         // Failed to load - trigger retry
                         errorHandler({ target: element, srcElement: element } as any)
                         return
