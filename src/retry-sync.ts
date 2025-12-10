@@ -177,21 +177,7 @@ export default function initSync(opts: InnerAssetsRetryOptions) {
     // Process already loaded elements when script initializes
     // This handles the case when assets-retry is loaded at the bottom of the page
     const processExistingElements = () => {
-        const scripts = arrayFrom(doc.querySelectorAll('script[src]')) as HTMLScriptElement[]
         const links = arrayFrom(doc.querySelectorAll('link[rel="stylesheet"][href]')) as HTMLLinkElement[]
-        const images = arrayFrom(doc.querySelectorAll('img[src]')) as HTMLImageElement[]
-        
-        // Check scripts - if they didn't execute, they likely failed
-        scripts.forEach(element => {
-            const url = getTargetUrl(element)
-            if (!url) return
-            
-            const [currentDomain, currentCollector] = extractInfoFromUrl(url, domainMap)
-            if (!currentCollector || !currentDomain) return
-            
-            // Assume script loaded successfully (we can't easily detect failure after the fact)
-            currentCollector[succeededProp].push(url)
-        })
         
         // Check stylesheets - we can detect failed stylesheets by checking their rules
         links.forEach(element => {
@@ -226,27 +212,6 @@ export default function initSync(opts: InnerAssetsRetryOptions) {
             }
         })
         
-        // Check images - look for broken images
-        images.forEach(element => {
-            const url = getTargetUrl(element)
-            if (!url) return
-            
-            const [currentDomain, currentCollector] = extractInfoFromUrl(url, domainMap)
-            if (!currentCollector || !currentDomain) return
-            
-            if (element.hasAttribute(ignoreIdentifier)) return
-            
-            // Check if image failed to load
-            // naturalWidth and naturalHeight are 0 for failed images (after load attempt)
-            if (element.complete && (!element.naturalWidth || !element.naturalHeight)) {
-                // Image failed to load - trigger retry
-                errorHandler({ target: element, srcElement: element } as any)
-            } else if (element.complete) {
-                // Image loaded successfully
-                currentCollector[succeededProp].push(url)
-            }
-            // If not complete yet, we'll catch it in the error/load handlers
-        })
     }
     
     // Process existing elements after DOM is ready

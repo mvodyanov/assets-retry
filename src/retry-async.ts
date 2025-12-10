@@ -170,7 +170,11 @@ const createHookedElement = function(
 const hookCreateElement = function(opts: InnerAssetsRetryOptions) {
     const originalCreateElement = doc.createElement
     ;(doc as any).createElement = function(name: string, options: any): any {
-        if (name === scriptTag || name === linkTag) {
+        if (name === scriptTag) {
+            // do not proxy script elements to avoid breaking consumers expecting real Nodes
+            return originalCreateElement.call(doc, name, options)
+        }
+        if (name === linkTag) {
             return createHookedElement((originalCreateElement as any).call(doc, name), opts)
         }
         return originalCreateElement.call(doc, name, options)
